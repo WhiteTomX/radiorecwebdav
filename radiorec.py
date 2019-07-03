@@ -2,8 +2,9 @@
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
 """
-radiorec.py – Recording internet radio streams
+radiorec.py Recording and uploading internet radio streams
 Copyright (C) 2013  Martin Brodbeck <martin@brodbeck-online.de>
+Edited By WhiteTom
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,6 +28,9 @@ import stat
 import sys
 import threading
 import urllib.request
+import webdav3.client as wc
+import tempfile
+import time
 
 
 def check_duration(value):
@@ -44,12 +48,12 @@ def check_duration(value):
 
 
 def read_settings(args):
+    config = configparser.ConfigParser()
     settings_base_dir = ''
     if args.settings:
-        settings_base_dir = args.settings
+        config.read_file(open(args.settings))
     elif sys.platform.startswith('linux'):
-        settings_base_dir = os.getenv(
-            'HOME') + os.sep + '.config' + os.sep + 'radiorec'
+        settings_base_dir = os.getenv('HOME') + os.sep + '.config' + os.sep + 'radiorec'
     elif sys.platform == 'win32':
         settings_base_dir = os.getenv('LOCALAPPDATA') + os.sep + 'radiorec'
     elif sys.platform == 'darwin':
@@ -59,20 +63,20 @@ def read_settings(args):
     try:
         config.read_file(open(settings_base_dir + 'settings.ini'))
     except FileNotFoundError as err:
-        print(str(err))
-        print('Please copy/create the settings file to/in the appropriate '
+        try:
+            config.read_file(open(os.dirname(os.path.abspath(__file__)) + 'settings.ini'))
+        except FileNotFoundError as err:
+            print(str(err))
+            print('Please copy/create the settings file to/in the appropriate '
               'location.')
-        sys.exit()
+            sys.exit()
     return dict(config.items())
 
-
-def record_worker(stoprec, streamurl, target_dir, args):
-    conn = urllib.request.urlopen(streamurl)
+def get_remote_path(content_type, remote_dir, args):
     cur_dt_string = datetime.datetime.now().strftime('%Y-%m-%dT%H_%M_%S')
-    filename = target_dir + os.sep + cur_dt_string + "_" + args.station
+    filename = remote_dir + os.sep + cur_dt_string + "_" + args.station
     if args.name:
         filename += '_' + args.name
-    content_type = conn.getheader('Content-Type')
     if(content_type == 'audio/mpeg'):
         filename += '.mp3'
     elif(content_type == 'application/ogg' or content_type == 'audio/ogg'):
@@ -83,15 +87,7 @@ def record_worker(stoprec, streamurl, target_dir, args):
     else:
         print('Unknown content type "' + content_type + '". Assuming mp3.')
         filename += '.mp3'
-
-    with open(filename, "wb") as target:
-        if args.public:
-            verboseprint('Apply public write permissions (Linux only)')
-            os.chmod(filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP |
-                     stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
-        verboseprint('Recording ' + args.station + '...')
-        while(not stoprec.is_set() and not conn.closed):
-            target.write(conn.read(1024))
+    return filename
 
 
 def record(args):
@@ -114,17 +110,27 @@ def record(args):
                     break
         streamurl = tmpstr
     verboseprint('stream url: ' + streamurl)
-    target_dir = os.path.expandvars(settings['GLOBAL']['target_dir'])
-    stoprec = threading.Event()
 
-    recthread = threading.Thread(target=record_worker,
-                                 args=(stoprec, streamurl, target_dir, args))
-    recthread.setDaemon(True)
-    recthread.start()
-    recthread.join(args.duration * 60)
+    options = {
+        'webdav_hostname': settings['WEBDAV']['url'],
+        'webdav_login':    settings['WEBDAV']['user'],
+        'webdav_password': settings['WEBDAV']['password']
+    }
+    webdav = wc.Client(options)
+    webdav.free()
 
-    if(recthread.is_alive):
-        stoprec.set()
+    conn = urllib.request.urlopen(streamurl)
+    remote_path = get_remote_path(conn.getheader('Content-Type'), settings['WEBDAV']['remote_dir'], args)
+    with tempfile.NamedTemporaryFile() as target:
+        verboseprint('tempfile: ' + target.name)
+        verboseprint('Recording ' + args.station + '...')
+        timeout = args.duration * 60
+        timeout_start = time.time()
+        while time.time() < timeout_start + timeout:
+            target.write(conn.read(1024))
+        verboseprint('uploading file to ' + remote_path)
+        webdav.upload(remote_path, target.name)
+
 
 
 def list(args):
@@ -134,10 +140,7 @@ def list(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='This program records '
-                                     'internet radio streams. It is free '
-                                     'software and comes with ABSOLUTELY NO '
-                                     'WARRANTY.')
+    parser = argparse.ArgumentParser(description='This program records internet radio streams and uploads them to webdav')
     subparsers = parser.add_subparsers(help='sub-command help')
     parser_record = subparsers.add_parser('record', help='Record a station')
     parser_record.add_argument('station', type=str,
@@ -148,19 +151,16 @@ def main():
     parser_record.add_argument('name', nargs='?', type=str,
                                help='A name for the recording')
     parser_record.add_argument(
-        '-p', '--public', action='store_true',
-        help="Public write permissions (Linux only)")
-    parser_record.add_argument(
         '-v', '--verbose', action='store_true', help="Verbose output")
     parser_record.add_argument(
         '-s', '--settings', nargs='?', type=str,
-        help="specify alternative location for settings.ini")
+        help="specify alternative path to the settings file")
     parser_record.set_defaults(func=record)
     parser_list = subparsers.add_parser('list', help='List all known stations')
     parser_list.set_defaults(func=list)
     parser_list.add_argument(
         '-s', '--settings', nargs='?', type=str,
-        help="specify alternative location for settings.ini")
+        help="specify alternative path to the settings file")
 
     if not len(sys.argv) > 1:
         print('Error: No argument specified.\n')

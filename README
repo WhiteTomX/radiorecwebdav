@@ -1,6 +1,7 @@
 Requirements
 ============
 - Python 3.x with argparse (which is already included in Python >= 3.2)
+- webdavclient3
 
 Installation
 ============
@@ -8,19 +9,20 @@ Installation
   depending on which platform you are using this program, e.g.:
   * Linux: $HOME/.config/radiorec/settings.ini or
   * Windows: %LOCALAPPDATA%/radiorec/settings.ini
-  or use the commandline option '-s' to specify the location of the
-  settings.ini file.
+  or copy the settings.ini next to the script
+  or use the commandline option '-s' to specify custom path to the settings file.
+
 - Adjust the settings to your needs. You can happily add more radio stations
   to the STATIONS section.
-  !!! Check at least the the target_dir !!!
+  !!! Check at least the the WebDav Section !!!
 - The script file radiorec.py can be placed wherever you want.
 
 Usage
 =====
 Open a shell and go to the directory where radiorec.py is located.
 General usage:
-* Windows: py radiorec.py […]
-* Linux: python3 radiorec.py […] OR JUST ./radiorec.py […]
+* Windows: py radiorec.py
+* Linux: python3 radiorec.py OR JUST ./radiorec.py
 
 What you want to do first is getting some help about how to use the scipt:
 ./radiorec.py --help
@@ -63,9 +65,11 @@ change the command line codepage and the font. For example, doing a
 
 Acknowledgements
 ================
+The main work is from the radiorec project by beedaddy (https://github.com/beedaddy/radiorec).
+
 This project got inspiration from the dradio project by prometoys
 (https://github.com/prometoys/dradio). Thanks for that!
 
 --
 If you have any questions or suggestions (or bug reports!), feel free to use
-the github issue tracker: https://github.com/beedaddy/radiorec/issues
+the github issue tracker: https://github.com/WhiteTomX/radiorecwebdav

@@ -49,28 +49,33 @@ def check_duration(value):
 
 def read_settings(args):
     config = configparser.ConfigParser()
-    settings_base_dir = ''
     if args.settings:
         config.read_file(open(args.settings))
-    elif sys.platform.startswith('linux'):
-        settings_base_dir = os.getenv('HOME') + os.sep + '.config' + os.sep + 'radiorec'
+        return dict(config.items())
+    paths = []
+    if sys.platform.startswith('linux'):
+        paths.append(os.getenv('HOME') + os.sep + '.config' + os.sep + 'radiorec')
     elif sys.platform == 'win32':
-        settings_base_dir = os.getenv('LOCALAPPDATA') + os.sep + 'radiorec'
+        paths.append(os.getenv('LOCALAPPDATA') + os.sep + 'radiorec')
     elif sys.platform == 'darwin':
-        settings_base_dir = os.getenv('HOME') + os.sep + 'Library' + os.sep + 'Application Support' + os.sep + 'radiorec'
-    settings_base_dir += os.sep
-    config = configparser.ConfigParser()
-    try:
-        config.read_file(open(settings_base_dir + 'settings.ini'))
-    except FileNotFoundError as err:
+        paths.append(os.getenv('HOME') + os.sep + 'Library' + os.sep + 'Application Support' + os.sep + 'radiorec')
+    paths.append(os.path.dirname(os.path.abspath(__file__)))
+    paths.append(os.path.dirname(os.path.abspath(__file__)) + os.sep + 'settings' )
+
+    success = False
+    for path in paths:
         try:
-            config.read_file(open(os.dirname(os.path.abspath(__file__)) + 'settings.ini'))
-        except FileNotFoundError as err:
-            print(str(err))
-            print('Please copy/create the settings file to/in the appropriate '
-              'location.')
-            sys.exit()
-    return dict(config.items())
+            config.read_file(open(path + os.sep + 'settings.ini'))
+            success = True
+            break
+        except FileNotFoundError:
+            pass
+
+    if success == True:
+        return dict(config.items())
+    else:
+        raise FileNotFoundError
+
 
 def get_remote_path(content_type, remote_dir, args):
     cur_dt_string = datetime.datetime.now().strftime('%Y-%m-%dT%H_%M_%S')

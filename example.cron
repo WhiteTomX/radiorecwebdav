@@ -1,5 +1,9 @@
-﻿#record swr2 for 10 minutes every half an hour
-*/30 * * * * root python3 /radiorecwebdav.py record swr2 10 swr2halfhour >/dev/null 2>&1
+﻿SHELL=/bin/bash
+PYTHONPATH=/usr/local/lib/python3.7/
+
+#record swr2 for 10 minutes every half an hour
+*/30 * * * * root /radiorecwebdav.py record swr2 10 swr2halfhour >/dev/stdout
 #record swr2 for 30minutes at every full hour
-0 * * * * root python3 /radiorecwebdav.py record swr2 30 swr2halfhour >/dev/null 2>&1
+0 * * * * root /radiorecwebdav.py record swr2 30 swr2halfhour >/dev/stdout
 #keep a empty line at the end
+

@@ -10,6 +10,8 @@ RUN pip3.7 install webdavclient3
 
 
 COPY ./radiorecwebdav.py /radiorecwebdav.py
+#point script to exact python executable
+RUN sed -i '1s/.*/#!\/usr\/local\/bin\/python3.7/' /radiorecwebdav.py
 RUN chmod +x /radiorecwebdav.py
 RUN mkdir /settings/
 COPY ./settings.ini /settings/settings.ini

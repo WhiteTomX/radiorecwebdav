@@ -1,24 +1,18 @@
-Requirements
-============
-- Python 3.x with argparse (which is already included in Python >= 3.2)
-- webdavclient3
+#Requirements
+* Python 3.x with argparse (which is already included in Python >= 3.2)
+* webdavclient3
 
-Installation
-============
-- Copy the config file settings.ini into your local settings directory,
-  depending on which platform you are using this program, e.g.:
-  * Linux: $HOME/.config/radiorec/settings.ini or
+#Installation
+1. Copy the Script wherever you want
+2. Copy the config file settings.ini into your local settings directory, depending on which platform you are using this program, e.g.:
+  * Linux: $HOME/.config/radiorec/settings.ini
   * Windows: %LOCALAPPDATA%/radiorec/settings.ini
-  or copy the settings.ini next to the script
-  or use the commandline option '-s' to specify custom path to the settings file.
+  * copy the settings.ini next to the script
+  * use the commandline option '-s' to specify custom path to the settings file.
+3. Adjust the settings to your needs. You can happily add more radio stations to the STATIONS section. **Check at least the the WebDav Section**
 
-- Adjust the settings to your needs. You can happily add more radio stations
-  to the STATIONS section.
-  !!! Check at least the the WebDav Section !!!
-- The script file radiorec.py can be placed wherever you want.
-
-Usage
-=====
+#Usage
+##As Script
 Open a shell and go to the directory where radiorec.py is located.
 General usage:
 * Windows: py radiorec.py
@@ -44,27 +38,17 @@ You can get a list of all known radio stations with:
 You can edit/add the radio stations in the STATIONS section of the settings
 file.
 
-Scheduling the recording task
-=============================
-Using Linux, you can use "at" for scheduling, for example:
-at 22:00 friday
-> /path/to/radiorec.py record dlf 60 mytest
-[CTRL-D]
+##Docker
+**To Do**
 
-The recording then starts on the upcoming friday at 10 pm.
-Please have a look at the manual page of "at" for more information about
-how to schedule your recording tasks.
-
-Known problems
-==============
+#Known problems
 The Windows command line (cmd and powershell) still has problems with UTF-8.
 Using the --verbose option might cause the script to crash with an
 UnicodeEncodeError. If you want to avoid the crash, you have to do both,
 change the command line codepage and the font. For example, doing a
 "chcp 65001" and changing the font to "Lucidia Console" should help.
 
-Acknowledgements
-================
+#Acknowledgements
 The main work is from the radiorec project by beedaddy (https://github.com/beedaddy/radiorec).
 
 This project got inspiration from the dradio project by prometoys

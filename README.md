@@ -1,8 +1,8 @@
-#Requirements
+# Requirements
 * Python 3.x with argparse (which is already included in Python >= 3.2)
 * webdavclient3
 
-#Installation
+# Installation
 1. Copy the Script wherever you want
 2. Copy the config file settings.ini into your local settings directory, depending on which platform you are using this program, e.g.:
   * Linux: $HOME/.config/radiorec/settings.ini
@@ -11,8 +11,8 @@
   * use the commandline option '-s' to specify custom path to the settings file.
 3. Adjust the settings to your needs. You can happily add more radio stations to the STATIONS section. **Check at least the the WebDav Section**
 
-#Usage
-##As Script
+# Usage
+## As Script
 Open a shell and go to the directory where radiorec.py is located.
 General usage:
 * Windows: py radiorec.py
@@ -39,6 +39,7 @@ You can edit/add the radio stations in the STATIONS section of the settings
 file.
 
 ##Docker
+Please note that the Docker-Container may not have the same time as your host!
 **To Do**
 
 #Known problems
